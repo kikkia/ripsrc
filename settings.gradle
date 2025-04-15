@@ -1,0 +1,5 @@
+rootProject.name = "ripsrc"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+include(":main")
+include(":plugin")

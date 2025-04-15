@@ -8,10 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
 
 @Service
-@RestController
 public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration {
 
 	private static final Logger log = LoggerFactory.getLogger(RipSrcPlugin.class);

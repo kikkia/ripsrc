@@ -14,15 +14,12 @@ public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchMana
 
 	private static final Logger log = LoggerFactory.getLogger(RipSrcPlugin.class);
 
-	private final RipSrcConfig config;
-	private AudioPlayerManager manager;
-	private RipSrcAudioManager ripSrcAudioManager;
+    private final RipSrcAudioManager ripSrcAudioManager;
 
 	public RipSrcPlugin(RipSrcConfig config) {
 		log.info("Loading RipSrc plugin...");
-		this.config = config;
 
-		this.ripSrcAudioManager = new RipSrcAudioManager(
+        this.ripSrcAudioManager = new RipSrcAudioManager(
 			config.getKey(),
 			config.getBaseUrl(),
 			config.getName(),
@@ -33,8 +30,7 @@ public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchMana
 	@NotNull
 	@Override
 	public AudioPlayerManager configure(@NotNull AudioPlayerManager manager) {
-		this.manager = manager;
-		log.info("Registering ripsrc audio source manager...");
+        log.info("Registering ripsrc audio source manager...");
 		manager.registerSourceManager(this.ripSrcAudioManager);
 		return manager;
 	}
@@ -44,7 +40,6 @@ public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchMana
 	public SearchManager configure(@NotNull SearchManager manager) {
 		log.info("Registering ripsrc search manager");
 		manager.registerSearchManager(this.ripSrcAudioManager);
-
 		return manager;
 	}
 }

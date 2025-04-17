@@ -7,7 +7,7 @@ Add it to LL:
   repository: "https://maven.kikkia.dev/snapshots"
 ```
 
-Config:
+### Config:
 ```yaml
 plugins:
   ripsrc:
@@ -15,3 +15,13 @@ plugins:
     baseurl: https://xxxxxx.xxxxxx/search
     useragent: your-useragent
 ```
+
+### Usage
+#### Lavasrc
+```yaml
+providers:
+  - "ripisrc:%ISRC%"
+```
+
+#### Other
+Using the prefixes "ripisrc:" or "ripsearch:" you can search by title or isrc

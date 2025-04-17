@@ -33,8 +33,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager, AudioSearchManager {
-	public static final String SEARCH_PREFIX = "custsearch:";
-	public static final String ISRC_PREFIX = "custisrc:";
+	public static final String SEARCH_PREFIX = "ripsearch:";
+	public static final String ISRC_PREFIX = "ripisrc:";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK);
 	private String baseUrl;
 	private String key;

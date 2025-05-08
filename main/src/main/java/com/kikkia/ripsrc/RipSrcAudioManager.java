@@ -60,21 +60,20 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	}
 
 	@Override
-	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) {
-	    if (!types.isEmpty() && !types.stream().allMatch(t -> t.equals(AudioSearchResult.Type.TRACK))) {
-	        throw new RuntimeException(getSourceName() + " can only search tracks");
-	    }
-	    try {
-	        JsonBrowser json = getJson(getSearchUrl(URLEncoder.encode(query, StandardCharsets.UTF_8)));
-	        if (json == null || json.values().isEmpty()) {
-	            return null;                       // ← signal “no results”
+	    public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) {
+	        if (!types.isEmpty() && !types.stream().allMatch(t -> t.equals(AudioSearchResult.Type.TRACK))) {
+	            throw new RuntimeException(getSourceName() + " can only search tracks");
 	        }
-	        List<AudioTrack> tracks = parseTracks(json);
-	        return new BasicAudioSearchResult(tracks, List.of(), List.of(), List.of(), List.of());
-	    } catch (IOException e) {
-	        throw new RuntimeException(e);
+	        try {
+	            AudioSearchResult result = getSearchResults(query);
+	            if (result.getTracks().isEmpty()) {
+	                return null;
+	            }
+	            return result;
+	        } catch (IOException e) {
+	            throw new RuntimeException(e);
+	        }
 	    }
-	}
 
 	private AudioSearchResult getSearchResults(String s) throws IOException {
 		var json = getJson(getSearchUrl(s));

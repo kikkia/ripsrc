@@ -56,7 +56,7 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 
 	@Override
 	public String getSourceName() {
-		return name != null ? name : "custom";
+		return name != null ? name : "ripsrc";
 	}
 
 	@Override
@@ -65,11 +65,14 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			throw new RuntimeException(getSourceName() + " can only search tracks");
 		}
 		try {
-			return getSearchResults(s);
+			if (s.startsWith(SEARCH_PREFIX)) {
+				return getSearchResults(s.substring(SEARCH_PREFIX.length()));
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
+		return null;
 	}
 
 	private AudioSearchResult getSearchResults(String s) throws IOException {

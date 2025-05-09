@@ -44,7 +44,7 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	private HttpInterfaceManager httpInterfaceManager;
 	private static final Logger log = LoggerFactory.getLogger(RipSrcAudioManager.class);
 
-	public RipSrcAudioManager(String key, String baseUrl, @Nullable String name, @Nullable String userAgent) {
+	public RipSrcAudioManager(String key, String baseUrl, @Nullable String name, @Nullable String userAgent, boolean hideBaseUrl) {
 		this.key = key;
 		this.name = name;
 		this.baseUrl = baseUrl;
@@ -137,7 +137,8 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			json.get("duration").asLong(0) * 1000,
 			id,
 			false,
-			json.get("versions").index(0).get("url").text(),
+			//json.get("versions").index(0).get("url").text(),
+			"",
 			json.get("picture").text(),
 			json.get("isrc").index(0).text()
 		);

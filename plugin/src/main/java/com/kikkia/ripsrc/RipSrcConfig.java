@@ -10,6 +10,7 @@ public class RipSrcConfig {
 	private String baseUrl;
 	private String name;
 	private String userAgent;
+	private boolean hideBaseUrl;
 
 	public String getKey() {
 		return this.key;
@@ -41,5 +42,13 @@ public class RipSrcConfig {
 
 	public void setUserAgent(String userAgent) {
 		this.userAgent = userAgent;
+	}
+
+	public boolean hideBaseUrl() {
+		return hideBaseUrl;
+	}
+
+	public void setHideBaseUrl(boolean hideBaseUrl) {
+		this.hideBaseUrl = hideBaseUrl;
 	}
 }

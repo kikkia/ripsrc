@@ -11,9 +11,10 @@ Add it to LL:
 ```yaml
 plugins:
   ripsrc:
-    key: xyz
-    baseurl: https://xxxxxx.xxxxxx/search
-    useragent: your-useragent
+    key: "xyz"
+    baseurl: "https://xxxxxx.xxxxxx/search"
+    useragent: "your-useragent"
+    external: false # set to true if you want to enable external results on all isrc searches (may be slow, use with caution)
 ```
 
 ### Usage
@@ -21,6 +22,7 @@ plugins:
 ```yaml
 providers:
   - "ripisrc:%ISRC%"
+  - "ripsearch:%QUERY%"
 ```
 
 #### Other

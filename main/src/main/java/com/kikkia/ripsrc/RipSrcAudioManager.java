@@ -139,7 +139,7 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			json.get("duration").asLong(0) * 1000,
 			id,
 			false,
-			json.get("versions").index(0).get("url").text(),
+			removeToken(json.get("versions").index(0).get("url").text()),
 			json.get("picture").text(),
 			json.get("isrc").index(0).text()
 		);
@@ -156,7 +156,19 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo audioTrackInfo, DataInput dataInput) throws IOException {
-		return new RipSrcAudioTrack(audioTrackInfo, this);
+		log.error(audioTrackInfo.uri);
+		var track = new AudioTrackInfo(
+				audioTrackInfo.title,
+				audioTrackInfo.author,
+				audioTrackInfo.length,
+				audioTrackInfo.identifier,
+				false,
+				audioTrackInfo.uri + "&token=" + key,
+				audioTrackInfo.artworkUrl,
+				audioTrackInfo.isrc
+		);
+		log.error(track.uri);
+		return new RipSrcAudioTrack(track, this);
 	}
 
 	@Override
@@ -195,5 +207,19 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 
 	public HttpInterface getHttpInterface() {
 		return this.httpInterfaceManager.getInterface();
+	}
+
+	public static String removeToken(String url) {
+		if (url == null || !url.contains("?")) {
+			return url;
+		}
+
+		String result = url.replaceAll("&token=[^&]*", "");
+
+		result = result.replaceAll("\\?token=[^&]*&", "?");
+
+		result = result.replaceAll("\\?token=[^&]*$", "");
+
+		return result;
 	}
 }

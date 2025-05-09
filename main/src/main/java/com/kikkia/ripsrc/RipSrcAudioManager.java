@@ -40,17 +40,19 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	private String key;
 	private String name;
 	private String userAgent = "Lavasrc";
+	private boolean external;
 
 	private HttpInterfaceManager httpInterfaceManager;
 	private static final Logger log = LoggerFactory.getLogger(RipSrcAudioManager.class);
 
-	public RipSrcAudioManager(String key, String baseUrl, @Nullable String name, @Nullable String userAgent) {
+	public RipSrcAudioManager(String key, String baseUrl, @Nullable String name, @Nullable String userAgent, boolean external) {
 		this.key = key;
 		this.name = name;
 		this.baseUrl = baseUrl;
 		if (userAgent != null) {
 			this.userAgent = userAgent;
 		}
+		this.external = external;
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
 	}
 
@@ -184,7 +186,7 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	}
 
 	public String getISRCSearchUrl(String isrc) {
-		return baseUrl + "?p=" + key + "&isrcs=" + isrc;
+		return baseUrl + "?p=" + key + "&isrcs=" + isrc + "&external=" + external;
 	}
 
 	public String getSearchUrl(String search) {

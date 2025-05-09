@@ -10,6 +10,7 @@ public class RipSrcConfig {
 	private String baseUrl;
 	private String name;
 	private String userAgent;
+	private boolean external;
 
 	public String getKey() {
 		return this.key;
@@ -41,5 +42,13 @@ public class RipSrcConfig {
 
 	public void setUserAgent(String userAgent) {
 		this.userAgent = userAgent;
+	}
+
+	public void setExternal(boolean external) {
+		this.external = external;
+	}
+
+	public boolean getExternal() {
+		return external;
 	}
 }

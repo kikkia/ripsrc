@@ -23,7 +23,8 @@ public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchMana
 			config.getKey(),
 			config.getBaseUrl(),
 			config.getName(),
-			config.getUserAgent()
+			config.getUserAgent(),
+			config.getExternal()
 		);
 	}
 

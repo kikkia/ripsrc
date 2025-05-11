@@ -11,9 +11,9 @@ public class RipSrcConfig {
 	private String name;
 	private String userAgent;
 	private boolean external;
-	private int connectTimeout = 5000;
-	private int socketTimeout = 5000;
-	private int connectionRequestTimeout = 5000;
+	private int connectTimeout = 3000;
+	private int socketTimeout = 3000;
+	private int connectionRequestTimeout = 3000;
 
 	public String getKey() {
 		return this.key;

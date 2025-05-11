@@ -12,38 +12,38 @@ import org.springframework.stereotype.Service;
 @Service
 public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration {
 
-	private static final Logger log = LoggerFactory.getLogger(RipSrcPlugin.class);
+    private static final Logger log = LoggerFactory.getLogger(RipSrcPlugin.class);
 
     private final RipSrcAudioManager ripSrcAudioManager;
 
-	public RipSrcPlugin(RipSrcConfig config) {
-		log.info("Loading RipSrc plugin...");
+    public RipSrcPlugin(RipSrcConfig config) {
+        log.info("Loading RipSrc plugin...");
 
         this.ripSrcAudioManager = new RipSrcAudioManager(
-			config.getKey(),
-			config.getBaseUrl(),
-			config.getName(),
-			config.getUserAgent(),
-			config.getExternal(),
-			config.getConnectTimeout(),
-			config.getSocketTimeout(),
-			config.getConnectionRequestTimeout()
-		);
-	}
+                config.getKey(),
+                config.getBaseUrl(),
+                config.getName(),
+                config.getUserAgent(),
+                config.getExternal(),
+                config.getConnectTimeout(),
+                config.getSocketTimeout(),
+                config.getConnectionRequestTimeout()
+        );
+    }
 
-	@NotNull
-	@Override
-	public AudioPlayerManager configure(@NotNull AudioPlayerManager manager) {
+    @NotNull
+    @Override
+    public AudioPlayerManager configure(@NotNull AudioPlayerManager manager) {
         log.info("Registering ripsrc audio source manager...");
-		manager.registerSourceManager(this.ripSrcAudioManager);
-		return manager;
-	}
+        manager.registerSourceManager(this.ripSrcAudioManager);
+        return manager;
+    }
 
-	@Override
-	@NotNull
-	public SearchManager configure(@NotNull SearchManager manager) {
-		log.info("Registering ripsrc search manager");
-		manager.registerSearchManager(this.ripSrcAudioManager);
-		return manager;
-	}
+    @Override
+    @NotNull
+    public SearchManager configure(@NotNull SearchManager manager) {
+        log.info("Registering ripsrc search manager");
+        manager.registerSearchManager(this.ripSrcAudioManager);
+        return manager;
+    }
 }

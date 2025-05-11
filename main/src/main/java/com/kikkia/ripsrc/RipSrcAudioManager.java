@@ -4,10 +4,10 @@ import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
 import com.github.topi314.lavasrc.LavaSrcTools;
+import com.kikkia.ripsrc.utils.HttpClientUtils;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
@@ -45,7 +45,14 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	private HttpInterfaceManager httpInterfaceManager;
 	private static final Logger log = LoggerFactory.getLogger(RipSrcAudioManager.class);
 
-	public RipSrcAudioManager(String key, String baseUrl, @Nullable String name, @Nullable String userAgent, boolean external) {
+	public RipSrcAudioManager(String key,
+							  String baseUrl,
+							  @Nullable String name,
+							  @Nullable String userAgent,
+							  boolean external,
+							  int connectTimeout,
+							  int socketTimeout,
+							  int connectRequestTimeout) {
 		this.key = key;
 		this.name = name;
 		this.baseUrl = baseUrl;
@@ -53,7 +60,14 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			this.userAgent = userAgent;
 		}
 		this.external = external;
-		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectionRequestTimeout(connectRequestTimeout)
+				.setConnectTimeout(connectTimeout)
+				.setSocketTimeout(socketTimeout)
+				.build();
+
+		this.httpInterfaceManager = HttpClientUtils.createDefaultThreadLocalManager(requestConfig);
 	}
 
 	@Override

@@ -147,13 +147,14 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var id = json.get("id").text();
+		var url = json.get("versions").index(0).get("url").text() + "&codec=" + json.get("versions").index(0).get("codec").text();
 		var track = new AudioTrackInfo(
 			json.get("title").text(),
 			json.get("artist").text(),
 			json.get("duration").asLong(0) * 1000,
 			id,
 			false,
-			json.get("versions").index(0).get("url").text(),
+			url,
 			json.get("picture").text(),
 			json.get("isrc").index(0).text()
 		);

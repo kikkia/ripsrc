@@ -387,12 +387,12 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			if (size > 0 || stats.requestCount() > 0) {
 				double hitRate = stats.requestCount() > 0 ? (stats.hitCount() * 100.0) / stats.requestCount() : 0.0;
 				
-				log.debug("ISRC Cache Stats - Size: {}, Requests: {}, Hits: {}, Misses: {}, Hit Rate: {:.1f}%, Evictions: {}", 
+				log.debug("ISRC Cache Stats - Size: {}, Requests: {}, Hits: {}, Misses: {}, Hit Rate: {}%, Evictions: {}", 
 					size,
 					stats.requestCount(),
 					stats.hitCount(),
 					stats.missCount(),
-					hitRate,
+					String.format("%.1f", hitRate),
 					stats.evictionCount()
 				);
 				

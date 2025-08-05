@@ -27,7 +27,9 @@ public class RipSrcPlugin implements AudioPlayerManagerConfiguration, SearchMana
                 config.getExternal(),
                 config.getConnectTimeout(),
                 config.getSocketTimeout(),
-                config.getConnectionRequestTimeout()
+                config.getConnectionRequestTimeout(),
+                config.isCaching(),
+                config.getCacheMemoryLimitMB()
         );
     }
 

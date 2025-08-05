@@ -194,10 +194,12 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
-		var request = new HttpGet(uri);
-		request.setHeader("Accept", "application/json");
-		request.setHeader("User-Agent", userAgent);
-		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		try (HttpInterface httpInterface = getHttpInterface()) {
+			var request = new HttpGet(uri);
+			request.setHeader("Accept", "application/json");
+			request.setHeader("User-Agent", userAgent);
+			return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
+		}
 	}
 
 	public String getISRCSearchUrl(String isrc) {

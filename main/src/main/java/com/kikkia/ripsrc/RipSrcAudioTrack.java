@@ -12,7 +12,6 @@ import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import java.net.URI;
 
 public class RipSrcAudioTrack extends DelegatedAudioTrack {
-
 	private final RipSrcAudioManager audioManager;
 
 	public RipSrcAudioTrack(AudioTrackInfo trackInfo, RipSrcAudioManager manager) {
@@ -23,18 +22,15 @@ public class RipSrcAudioTrack extends DelegatedAudioTrack {
 	@Override
 	public void process(LocalAudioTrackExecutor localAudioTrackExecutor) throws Exception {
 		var downloadLink = this.trackInfo.uri;
-		try (var httpInterface = this.audioManager.getHttpInterface()) {
-			try (var stream = new PersistentHttpStream(httpInterface, new URI(downloadLink), this.trackInfo.length)) {
-				InternalAudioTrack track;
 
-				// Atm only see mpeg or webm
-				if (downloadLink.contains("&codec=mp4a")) {
-					track = new MpegAudioTrack(this.trackInfo, stream);
-				} else {
-					track = new MatroskaAudioTrack(this.trackInfo, stream);
-				}
+		try (var httpInterface = this.audioManager.getHttpInterface();
+			 var stream = new PersistentHttpStream(httpInterface, new URI(downloadLink), this.trackInfo.length)) {
 
-				processDelegate(track, localAudioTrackExecutor);
+			// Atm only see mpeg or webm
+			if (downloadLink.contains("&codec=mp4a")) {
+				processDelegate(new MpegAudioTrack(this.trackInfo, stream), localAudioTrackExecutor);
+			} else {
+				processDelegate(new MatroskaAudioTrack(this.trackInfo, stream), localAudioTrackExecutor);
 			}
 		}
 	}

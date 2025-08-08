@@ -8,6 +8,7 @@ import com.kikkia.ripsrc.utils.HttpClientUtils;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
@@ -147,7 +148,11 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var id = json.get("id").text();
-		var url = json.get("versions").index(0).get("url").text() + "&codec=" + json.get("versions").index(0).get("codec").text();
+		var version = json.get("versions").index(0);
+		var codec = version.get("codec").text();
+		var contentLength = version.get("size").asLong(Units.CONTENT_LENGTH_UNKNOWN);
+		var url = version.get("url").text() + "&codec=" + codec + "&clen=" + contentLength;
+
 		var track = new AudioTrackInfo(
 			json.get("title").text(),
 			json.get("artist").text(),
@@ -158,6 +163,7 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			json.get("picture").text(),
 			json.get("isrc").index(0).text()
 		);
+
 		return new RipSrcAudioTrack(track, this);
 	}
 

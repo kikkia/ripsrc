@@ -20,6 +20,7 @@ dependencies {
     compileOnly("com.github.topi314.lavasearch:lavasearch:1.0.0")
     implementation("com.github.topi314.lavasearch:lavasearch-plugin-api:1.0.0")
     implementation("com.github.topi314.lavalyrics:lavalyrics-plugin-api:1.0.0")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.2")
 }
 
 publishing {

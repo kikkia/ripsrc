@@ -36,9 +36,9 @@ public class RipSrcAudioTrack extends DelegatedAudioTrack {
 
 			// Atm only see mpeg or webm
 			if (codec.equals("opus")) {
-				processDelegate(new MpegAudioTrack(this.trackInfo, stream), localAudioTrackExecutor);
-			} else if (codec.equals("mp4a")) {
 				processDelegate(new MatroskaAudioTrack(this.trackInfo, stream), localAudioTrackExecutor);
+			} else if (codec.equals("mp4a")) {
+				processDelegate(new MpegAudioTrack(this.trackInfo, stream), localAudioTrackExecutor);
 			} else {
 				throw new RuntimeException("Unsupported audio codec " + codec);
 			}

@@ -20,6 +20,7 @@ dependencies {
     implementation("commons-io:commons-io:2.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlin:kotlin-annotations-jvm:1.9.0")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.2")
     compileOnly("org.slf4j:slf4j-api:2.0.7")
 }
 

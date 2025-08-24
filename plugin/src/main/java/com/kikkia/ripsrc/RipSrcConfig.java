@@ -14,6 +14,9 @@ public class RipSrcConfig {
 	private int connectTimeout = 3000;
 	private int socketTimeout = 3000;
 	private int connectionRequestTimeout = 3000;
+	
+	private boolean caching = false;
+	private int cacheMemoryLimitMB = 100;
 
 	public String getKey() {
 		return this.key;
@@ -77,5 +80,21 @@ public class RipSrcConfig {
 
 	public void setConnectionRequestTimeout(int connectionRequestTimeout) {
 		this.connectionRequestTimeout = connectionRequestTimeout;
+	}
+
+	public boolean isCaching() {
+		return caching;
+	}
+
+	public void setCaching(boolean caching) {
+		this.caching = caching;
+	}
+
+	public int getCacheMemoryLimitMB() {
+		return cacheMemoryLimitMB;
+	}
+
+	public void setCacheMemoryLimitMB(int cacheMemoryLimitMB) {
+		this.cacheMemoryLimitMB = cacheMemoryLimitMB;
 	}
 }

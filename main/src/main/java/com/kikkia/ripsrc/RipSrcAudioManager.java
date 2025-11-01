@@ -15,6 +15,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +26,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -151,8 +153,16 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 		var version = json.get("versions").index(0);
 		var codec = version.get("codec").text();
 		var contentLength = version.get("size").asLong(Units.CONTENT_LENGTH_UNKNOWN);
-		var url = version.get("url").text() + "&codec=" + codec + "&clen=" + contentLength;
-
+		String url;
+		try {
+			url = new URIBuilder(version.get("url").text())
+				.addParameter("codec", codec)
+				.addParameter("clen", String.valueOf(contentLength))
+				.build()
+				.toString();
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 		String isrc = null;
 		JsonBrowser isrcs = json.get("isrc");
 		if (!isrcs.isNull() && !isrcs.values().isEmpty()) {

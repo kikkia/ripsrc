@@ -14,8 +14,12 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RipSrcAudioTrack extends DelegatedAudioTrack {
 	private final RipSrcAudioManager audioManager;
+	private static final Logger log = LoggerFactory.getLogger(RipSrcAudioTrack.class);
 
 	public RipSrcAudioTrack(AudioTrackInfo trackInfo, RipSrcAudioManager manager) {
 		super(trackInfo);
@@ -26,6 +30,7 @@ public class RipSrcAudioTrack extends DelegatedAudioTrack {
 	public void process(LocalAudioTrackExecutor localAudioTrackExecutor) throws Exception {
 		var downloadLink = this.trackInfo.uri;
 		var queryParams = parseQueryParams(downloadLink);
+		log.info("Downloading {} from {}", this.trackInfo.title, downloadLink);
 
 		var codec = queryParams.get("codec");
 		var contentLength = queryParams.get("clen");

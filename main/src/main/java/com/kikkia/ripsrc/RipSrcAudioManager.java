@@ -3,12 +3,13 @@ package com.kikkia.ripsrc;
 import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
-import com.github.topi314.lavasrc.LavaSrcTools;
 import com.kikkia.ripsrc.utils.HttpClientUtils;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.Units;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
@@ -25,27 +26,25 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager, AudioSearchManager {
  	public static final String SEARCH_PREFIX = "ripsearch:";
 	public static final String ISRC_PREFIX = "ripisrc:";
-	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK);
-	private String baseUrl;
-	private String key;
-	private String name;
-	private String userAgent = "Lavasrc";
-	private List<String> wants;
+	public static final String TRACK_PREFIX = "riptrack:";
+	private final String baseUrl;
+	private final String key;
+	private final String name;
+	private String userAgent = "Ripsrc";
+	private String encodedWants = null;
 
-	private HttpInterfaceManager httpInterfaceManager;
+	private final HttpInterfaceManager httpInterfaceManager;
 	private static final Logger log = LoggerFactory.getLogger(RipSrcAudioManager.class);
 
 	public RipSrcAudioManager(String key,
@@ -59,10 +58,14 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 		this.key = key;
 		this.name = name;
 		this.baseUrl = baseUrl;
+
 		if (userAgent != null) {
 			this.userAgent = userAgent;
 		}
-		this.wants = wants;
+
+		if (!wants.isEmpty()) {
+			this.encodedWants = URLEncoder.encode(String.join(",", wants), StandardCharsets.UTF_8);
+		}
 
 		RequestConfig requestConfig = RequestConfig.custom()
 				.setConnectionRequestTimeout(connectRequestTimeout)
@@ -74,30 +77,30 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	}
 
 	@Override
+	@NotNull
 	public String getSourceName() {
 		return name != null ? name : "ripsrc";
 	}
 
 	@Override
-	public @Nullable AudioSearchResult loadSearch(@NotNull String s, @NotNull Set<AudioSearchResult.Type> set) {
+	@Nullable
+	public AudioSearchResult loadSearch(@NotNull String s, @NotNull Set<AudioSearchResult.Type> set) {
 		if (!set.isEmpty() && !set.stream().allMatch(it -> it.equals(AudioSearchResult.Type.TRACK))) {
 			throw new RuntimeException(getSourceName() + " can only search tracks");
 		}
-		try {
-			if (s.startsWith(SEARCH_PREFIX)) {
-				return getSearchResults(s.substring(SEARCH_PREFIX.length()));
+
+		if (s.startsWith(SEARCH_PREFIX)) {
+			AudioItem result = this.getSearch(s.substring(SEARCH_PREFIX.length()));
+
+			if (result == AudioReference.NO_TRACK) {
+				return AudioSearchResult.EMPTY;
 			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+
+			BasicAudioPlaylist playlist = (BasicAudioPlaylist) result;
+			return new BasicAudioSearchResult(playlist.getTracks(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 		}
 
 		return null;
-	}
-
-	private AudioSearchResult getSearchResults(String s) throws IOException {
-		var json = getJson(getSearchUrl(s));
-		var tracks = parseTracks(json);
-		return new BasicAudioSearchResult(tracks, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 	}
 
 	@Override
@@ -111,48 +114,69 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	}
 
 	@Override
-	public void encodeTrack(AudioTrack audioTrack, DataOutput dataOutput) throws IOException {
+	public void encodeTrack(AudioTrack audioTrack, DataOutput dataOutput) {
 		// Nothing to do
 	}
 
 	public AudioItem loadItem(String identifier) {
-		try {
-			if (identifier.startsWith(SEARCH_PREFIX)) {
-				return this.getSearch(identifier.substring(SEARCH_PREFIX.length()));
-			}
-
-			if (identifier.startsWith(ISRC_PREFIX)) {
-				return this.getTrackByISRC(identifier.substring(ISRC_PREFIX.length()));
-			}
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		if (identifier.startsWith(SEARCH_PREFIX)) {
+			return this.getSearch(identifier.substring(SEARCH_PREFIX.length()));
 		}
+
+		if (identifier.startsWith(ISRC_PREFIX)) {
+			return this.getTracksByISRC(identifier.substring(ISRC_PREFIX.length()));
+		}
+
+		if (identifier.startsWith(TRACK_PREFIX)) {
+			return this.getTracksById(identifier.substring(TRACK_PREFIX.length()));
+		}
+
 		return null;
 	}
 
-	private AudioItem getTrackByISRC(String isrc) throws IOException {
-		var json = this.getJson(getISRCSearchUrl(URLEncoder.encode(isrc, StandardCharsets.UTF_8)));
-		if (json == null || json.index(0).get("id").isNull()) {
-			return AudioReference.NO_TRACK;
-		}
-		return this.parseTrack(json.index(0));
+	private AudioItem getTracksById(String id) {
+		return this.loadTracks("tracks", id, false);
 	}
 
-	private AudioItem getSearch(String query) throws IOException {
-		var json = this.getJson(getSearchUrl(URLEncoder.encode(query, StandardCharsets.UTF_8)));
-		if (json == null || json.values().isEmpty()) {
+	private AudioItem getTracksByISRC(String isrcs) {
+		return this.loadTracks("isrcs", isrcs, false);
+	}
+
+	private AudioItem getSearch(String query) {
+		return this.loadTracks("q", query, true);
+	}
+
+	private AudioItem loadTracks(String key, String value, boolean isSearch) {
+		var tracks = parseTracks(this.getSearch(key, value));
+
+		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist("Custom Search: " + query, this.parseTracks(json), null, true);
+		if (tracks.size() == 1 && !isSearch) {
+			return tracks.get(0);
+		}
+
+		return new BasicAudioPlaylist(
+			isSearch ? "Custom Search: " + value : "Track List",
+			tracks,
+			null,
+			isSearch
+		);
 	}
 
+	@Nullable
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var id = json.get("id").text();
+
+		if (id == null) {
+			return null;
+		}
+
 		var version = json.get("versions").index(0);
 		var codec = version.get("codec").text();
 		var contentLength = version.get("size").asLong(Units.CONTENT_LENGTH_UNKNOWN);
+
 		String url;
 		try {
 			url = new URIBuilder(version.get("url").text())
@@ -163,11 +187,9 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
-		String isrc = null;
+
 		JsonBrowser isrcs = json.get("isrc");
-		if (!isrcs.isNull() && !isrcs.values().isEmpty()) {
-			isrc = isrcs.index(0).text();
-		}
+		String isrc = selectBestIsrc(isrcs);
 
 		var track = new AudioTrackInfo(
 			json.get("title").text(),
@@ -183,12 +205,70 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 		return new RipSrcAudioTrack(track, this);
 	}
 
+	@Nullable
+	private String selectBestIsrc(JsonBrowser isrcs) {
+		return isrcs.values()
+			.stream()
+			// we sometimes get ISRCs that aren't actually valid.
+			// we could add a regex check here, but I don't think it's necessary currently.
+			.filter(isrc -> isrc.text() != null && isrc.text().length() == 12)
+			.findFirst()
+			.map(isrc -> isrc.text().toUpperCase(Locale.ROOT))
+			.orElse(null);
+	}
+
+	@NotNull
 	private List<AudioTrack> parseTracks(JsonBrowser json) {
 		var tracks = new ArrayList<AudioTrack>();
+
 		for (var track : json.values()) {
-			tracks.add(this.parseTrack(track));
+			var ripSrcTrack = this.parseTrack(track);
+
+			if (ripSrcTrack != null) {
+				tracks.add(ripSrcTrack);
+			}
 		}
+
 		return tracks;
+	}
+
+	@NotNull
+	private URI prepareRequestUri(String key, String value) {
+		try {
+			var builder = new URIBuilder(this.baseUrl)
+				.addParameter(key, URLEncoder.encode(value, StandardCharsets.UTF_8))
+				.addParameter("p", this.key);
+
+			if (this.encodedWants != null) {
+				builder.addParameter("wants", this.encodedWants);
+			}
+
+			return builder.build();
+		} catch (URISyntaxException exception) {
+			throw ExceptionTools.toRuntimeException(exception);
+		}
+	}
+
+	@NotNull
+	private JsonBrowser getSearch(String key, String value) {
+		var requestUri = this.prepareRequestUri(key, value);
+		var request = new HttpGet(requestUri);
+		request.addHeader("Accept", "application/json");
+		request.addHeader("User-Agent", this.userAgent);
+
+		log.debug("Performing HTTP request with {}", request);
+
+		try (var httpInterface = getHttpInterface();
+			var response = httpInterface.execute(request)) {
+			HttpClientTools.assertSuccessWithContent(response, "track search");
+			HttpClientTools.assertJsonContentType(response);
+
+			var json = JsonBrowser.parse(response.getEntity().getContent());
+			log.debug("Received JSON response\n{}", json.format());
+			return json;
+		} catch (IOException e) {
+			throw ExceptionTools.toRuntimeException(e);
+		}
 	}
 
 	@Override
@@ -213,31 +293,6 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 	@Override
 	public void configureBuilder(Consumer<HttpClientBuilder> consumer) {
 		this.httpInterfaceManager.configureBuilder(consumer);
-	}
-
-	public JsonBrowser getJson(String uri) throws IOException {
-		try (HttpInterface httpInterface = getHttpInterface()) {
-			var request = new HttpGet(uri);
-			request.setHeader("Accept", "application/json");
-			request.setHeader("User-Agent", userAgent);
-			return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
-		}
-	}
-
-	public String getISRCSearchUrl(String isrc) {
-		var url = baseUrl + "?p=" + key + "&isrcs=" + isrc;
-		if (wants != null && !wants.isEmpty()) {
-			url += "&wants=" + String.join(",", wants);
-		}
-		return url;
-	}
-
-	public String getSearchUrl(String search) {
-		var url = baseUrl + "?p=" + key + "&q=" + search;
-		if (wants != null && !wants.isEmpty()) {
-			url += "&wants=" + String.join(",", wants);
-		}
-		return url;
 	}
 
 	public HttpInterface getHttpInterface() {

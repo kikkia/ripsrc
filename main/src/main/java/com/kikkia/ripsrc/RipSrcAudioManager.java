@@ -134,15 +134,15 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 		return null;
 	}
 
-	private AudioItem getTracksById(String id) {
+	public AudioItem getTracksById(String id) {
 		return this.loadTracks("tracks", id, false);
 	}
 
-	private AudioItem getTracksByISRC(String isrcs) {
+	public AudioItem getTracksByISRC(String isrcs) {
 		return this.loadTracks("isrcs", isrcs, false);
 	}
 
-	private AudioItem getSearch(String query) {
+	public AudioItem getSearch(String query) {
 		return this.loadTracks("q", query, true);
 	}
 

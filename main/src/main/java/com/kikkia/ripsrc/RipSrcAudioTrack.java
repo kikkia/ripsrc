@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RipSrcAudioTrack extends DelegatedAudioTrack {
+	static boolean supportsCodec(String codec) {
+		return codec != null && (codec.contains("opus") || codec.contains("mp4a"));
+	}
 	private final RipSrcAudioManager audioManager;
 
 	public RipSrcAudioTrack(AudioTrackInfo trackInfo, RipSrcAudioManager manager) {

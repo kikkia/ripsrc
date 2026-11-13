@@ -173,7 +173,8 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 			return null;
 		}
 
-		var version = json.get("versions").index(0);
+		var version = selectVersion(json.get("versions"));
+		if (version == null) return null;
 		var codec = version.get("codec").text();
 		var contentLength = version.get("size").asLong(Units.CONTENT_LENGTH_UNKNOWN);
 
@@ -203,6 +204,13 @@ public class RipSrcAudioManager implements HttpConfigurable, AudioSourceManager,
 		);
 
 		return new RipSrcAudioTrack(track, this);
+	}
+
+	@Nullable
+	static JsonBrowser selectVersion(JsonBrowser versions) {
+		return versions.values().stream()
+			.filter(candidate -> RipSrcAudioTrack.supportsCodec(candidate.get("codec").text()))
+			.findFirst().orElse(null);
 	}
 
 	@Nullable
